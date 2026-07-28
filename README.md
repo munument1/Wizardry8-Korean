@@ -6,7 +6,7 @@ Wizardry 8과 Fan Patch 1.28을 위한 비공식 한국어 패치입니다.
 
 - Wizardry 8
 - Fan Patch 1.28 build 6735
-- 한국어 패치 v0.2.0
+- 한국어 패치 v0.2.1
 
 Fan Patch build 6709 사용자는 기존 한국어 패치 v0.1.0을 사용하세요. 서로 다른
 Fan Patch 빌드용 파일을 섞어 설치하면 안 됩니다.
@@ -15,7 +15,7 @@ Fan Patch 빌드용 파일을 섞어 설치하면 안 됩니다.
 
 1. 정품 Wizardry 8을 설치합니다.
 2. Fan Patch 1.28 build 6735를 설치합니다.
-3. [Releases](../../releases)에서 `Wizardry8_Korean_Patch_1.28.6735_v0.2.0.zip`을 받습니다.
+3. [Releases](../../releases)에서 `Wizardry8_Korean_Patch_1.28.6735_v0.2.1.zip`을 받습니다.
 4. 압축 안의 `Patch Files` 폴더 내용물을 Wizardry 8 게임 폴더에 덮어씁니다.
 5. Fan Patch 런처의 언어는 **ENG**로 두고 `Wiz8_v128.exe`를 실행합니다.
 
@@ -36,6 +36,7 @@ DontShowDialogLauncher=0
 - 본편 UI와 지역 메시지
 - 플레이어 음성 자막
 - NPC 대화 스크립트
+- 퀘스트 저널 기록 333문장
 - 아이템 이름 819개
 - 아이템 및 주문 설명
 - Fan Patch 1.28 build 6735 추가 옵션
