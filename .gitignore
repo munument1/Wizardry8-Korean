@@ -1,0 +1,11 @@
+# Release artifacts are attached to GitHub Releases, not committed to Git.
+*.zip
+*.7z
+*.sha256
+
+# Local game and build files
+Wizardry 8/
+Patch Files/
+build/
+release/
+
