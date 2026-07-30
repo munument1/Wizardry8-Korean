@@ -6,7 +6,7 @@ Wizardry 8과 Fan Patch 1.28을 위한 비공식 한국어 패치입니다.
 
 - Wizardry 8
 - Fan Patch 1.28 build 6735
-- 한국어 패치 v0.2.2
+- 한국어 패치 v0.2.3
 
 Fan Patch build 6709 사용자는 기존 한국어 패치 v0.1.0을 사용하세요. 서로 다른
 Fan Patch 빌드용 파일을 섞어 설치하면 안 됩니다.
@@ -15,13 +15,13 @@ Fan Patch 빌드용 파일을 섞어 설치하면 안 됩니다.
 
 1. 정품 Wizardry 8을 설치합니다.
 2. Fan Patch 1.28 build 6735를 설치합니다.
-3. [Releases](../../releases)에서 `Wizardry8_Korean_Patch_1.28.6735_v0.2.2.zip`을 받습니다.
+3. [Releases](../../releases)에서 `Wizardry8_Korean_Patch_1.28.6735_v0.2.3.zip`을 받습니다.
 4. 압축 안의 `Patch Files` 폴더 내용물을 Wizardry 8 게임 폴더에 덮어씁니다.
 5. Fan Patch 런처의 언어는 **ENG**로 두고 `Wiz8_v128.exe`를 실행합니다.
 
-`KOR` 외부 로캘은 사용하지 않습니다. build 6709의 외부 로캘 로더가 한글
-바이트를 손상시키기 때문에, Fan Patch 추가 옵션 문자열은 `Wiz8.dll` 내부에
-직접 적용했습니다.
+`KOR` 외부 로캘은 사용하지 않습니다. v0.2.3의 수정된 `Wiz8_v128.exe`가
+NPC 스크립트의 한국어 문자열 변환 로캘과 버퍼를 직접 처리합니다. Fan Patch
+추가 옵션 문자열은 `Wiz8.dll` 내부에 직접 적용했습니다.
 
 권장 `wiz8.ini` 설정:
 
