@@ -1,1 +1,0 @@
-Trigger release workflow after the workflow file exists on the branch.
