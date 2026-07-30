@@ -1,0 +1,255 @@
+name: Publish v0.2.3
+
+on:
+  push:
+    branches:
+      - automation-release-v0.2.3
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v4
+
+      - name: Download v0.2.2 base package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p work
+          gh release download v0.2.2 \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'Wizardry8_Korean_Patch_1.28.6735_v0.2.2.zip' \
+            --dir work
+
+      - name: Build v0.2.3 package
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import re
+          import shutil
+          import zipfile
+          from pathlib import Path
+
+          SOURCE_ZIP_SHA256 = "732E1E5861862EBA3D3928FC9CB74AF425B3432350430857CAFF76CCB537E9EB"
+          ORIGINAL_EXE_SHA256 = "CEA036D5F69F7753BFB185E9B3C36E1A7DE293FAF203CCFBA8FB58E2AB4176FB"
+          PATCHED_EXE_SHA256 = "87A6939F7956C99357E7D4144B4A0FA6549B6585150F41FB95CBA41CB93BF9A5"
+          FIXED_ZIP_TIME = (2026, 7, 30, 12, 0, 0)
+
+          work = Path("work")
+          source_zip = work / "Wizardry8_Korean_Patch_1.28.6735_v0.2.2.zip"
+          extract_dir = work / "extract"
+          output_root = work / "Wizardry8_Korean_Patch_1.28.6735_v0.2.3"
+          output_zip = work / "Wizardry8_Korean_Patch_1.28.6735_v0.2.3.zip"
+
+          def sha256_bytes(data: bytes) -> str:
+              return hashlib.sha256(data).hexdigest().upper()
+
+          def sha256_file(path: Path) -> str:
+              h = hashlib.sha256()
+              with path.open("rb") as stream:
+                  for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest().upper()
+
+          if sha256_file(source_zip) != SOURCE_ZIP_SHA256:
+              raise SystemExit("v0.2.2 source ZIP checksum mismatch")
+
+          if extract_dir.exists():
+              shutil.rmtree(extract_dir)
+          extract_dir.mkdir(parents=True)
+          with zipfile.ZipFile(source_zip) as archive:
+              if archive.testzip() is not None:
+                  raise SystemExit("v0.2.2 source ZIP is corrupt")
+              archive.extractall(extract_dir)
+
+          source_root = extract_dir / "Wizardry8_Korean_Patch_1.28.6735_v0.2.2"
+          if output_root.exists():
+              shutil.rmtree(output_root)
+          shutil.copytree(source_root, output_root)
+
+          exe_path = output_root / "Patch Files" / "Wiz8_v128.exe"
+          exe_data = bytearray(exe_path.read_bytes())
+          if sha256_bytes(exe_data) != ORIGINAL_EXE_SHA256:
+              raise SystemExit("Unexpected v0.2.2 Wiz8_v128.exe")
+
+          patches = [
+              (0x00007571, bytes.fromhex("DC")),
+              (0x00159963, bytes.fromhex("0FB7C001C0")),
+              (0x00159B54, bytes.fromhex("0FB7D201D290")),
+              (0x00325A51, bytes.fromhex("606890807200FF151CB05E0085C0741C689B80720050FF1598B05E0085C0740C68A58072006A02FFD083C40861E97DFFFFFF")),
+              (0x00325A90, bytes.fromhex("6D73766372742E646C6C007365746C6F63616C65002E39343900")),
+          ]
+          for offset, replacement in patches:
+              exe_data[offset:offset + len(replacement)] = replacement
+          if sha256_bytes(exe_data) != PATCHED_EXE_SHA256:
+              raise SystemExit("Patched Wiz8_v128.exe checksum mismatch")
+          exe_path.write_bytes(exe_data)
+
+          manifest_path = output_root / "manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+          manifest["version"] = "v0.2.3"
+          manifest["built_at_utc"] = "2026-07-30T12:00:00+00:00"
+          patch_root = output_root / "Patch Files"
+
+          def resolve_case_insensitive(base: Path, relative: str) -> Path:
+              current = base
+              for part in Path(relative).parts:
+                  matches = {child.name.lower(): child for child in current.iterdir()}
+                  current = matches[part.lower()]
+              return current
+
+          for entry in manifest["files"]:
+              payload = patch_root / Path(entry["path"])
+              if not payload.exists():
+                  payload = resolve_case_insensitive(patch_root, entry["path"])
+              entry["size"] = payload.stat().st_size
+              entry["sha256"] = sha256_file(payload)
+          manifest_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+
+          readme = """Wizardry 8 한국어 패치 v0.2.3
+          대상: Wizardry 8 + Fan Patch 1.28 build 6735
+
+          [중요]
+          - Fan Patch 런처의 언어는 ENG(영어)를 사용하세요.
+          - KOR 항목을 선택하지 마세요. 이 패치는 수정된 Wiz8_v128.exe에서 한국어 변환 로캘을 직접 설정합니다.
+          - GOG/Steam/정품 Wizardry 8과 Fan Patch 1.28 build 6735가 미리 설치되어 있어야 합니다.
+
+          [v0.2.3 변경 내용]
+          - NPC/RPC 대사가 영어로 대체되거나 대화가 멈추던 문제를 수정했습니다.
+          - NPC NSF의 UTF-16 문자열을 CP949로 변환할 때 한국어 로캘을 적용했습니다.
+          - 한글 변환에 필요한 출력 버퍼 크기를 확대했습니다.
+          - 긴 NPC 대사와 여러 NPC 대화의 정상 출력 및 진행을 확인했습니다.
+
+          [설치]
+          1. Wizardry 8 게임 폴더 전체를 백업합니다.
+          2. 실행 중인 게임과 Fan Patch 런처를 종료합니다.
+          3. 이 압축 파일의 "Patch Files" 폴더 안 내용물을 Wizardry 8 게임 폴더에 복사합니다.
+          4. 같은 이름의 파일을 모두 덮어씁니다.
+          5. Fan Patch 런처에서 언어를 ENG로 두고 Wiz8_v128.exe를 실행합니다.
+
+          [설정 확인]
+          게임 폴더의 wiz8.ini에서 아래 상태를 권장합니다.
+            Language=2
+            Fan_Patch_1_28_Localization=
+            DontShowDialogLauncher=0
+
+          KOR 사용자 로캘 폴더는 이 패치에서 사용하지 않습니다. 옵션 1.28 추가 문구는
+          Wiz8.dll 내부에 직접 한글로 적용되어 있습니다.
+
+          [제거/복구]
+          설치 전에 만든 게임 폴더 백업을 복원하거나, 게임을 재설치한 뒤
+          Fan Patch 1.28 build 6735를 다시 설치하세요.
+
+          [포함 파일]
+          - 실행 파일/라이브러리: 2개
+          - 한글 비트맵 글꼴: 13개
+          - 지역/플레이어 대사 MSG: 51개
+          - NPC 대화 NSF: 165개
+          - 저널/아이템 이름/아이템·주문 설명 DBS: 4개
+          - 문자열/크레딧: 2개
+          - 합계: 237개
+
+          [현재 범위]
+          - 본편 UI, 지역 메시지, 플레이어 음성 자막
+          - NPC 대화 스크립트
+          - 퀘스트 저널 기록 333문장
+          - 아이템 이름 819개 및 아이템·주문 설명
+          - Fan Patch 1.28 build 6735 추가 옵션 문구
+          - Noto Sans KR Light 기반 한글 비트맵 글꼴
+          - 8×7 초소형 글꼴은 프리텐다드 사용
+
+          [글꼴 고지]
+          - Noto Sans KR: Copyright 2014-2021 Adobe, SIL Open Font License 1.1
+          - Pretendard: SIL Open Font License 1.1
+          - 이 패치에는 게임용으로 래스터화한 비트맵 글리프만 포함됩니다.
+
+          이 버전은 build 6735 전용입니다. build 6709에는 v0.1.0을 사용하세요.
+          """
+          readme = "\n".join(line[10:] if line.startswith("          ") else line for line in readme.splitlines()) + "\n"
+          (output_root / "README_KO.txt").write_text(readme, encoding="utf-8-sig")
+
+          payload_files = sorted(
+              (path for path in patch_root.rglob("*") if path.is_file()),
+              key=lambda path: path.relative_to(output_root).as_posix().lower(),
+          )
+          if len(payload_files) != 237:
+              raise SystemExit(f"Unexpected payload count: {len(payload_files)}")
+          checksum_lines = [
+              f"{sha256_file(path)} *{path.relative_to(output_root).as_posix()}"
+              for path in payload_files
+          ]
+          (output_root / "SHA256SUMS.txt").write_text(
+              "\n".join(checksum_lines) + "\n",
+              encoding="utf-8",
+          )
+
+          if output_zip.exists():
+              output_zip.unlink()
+          with zipfile.ZipFile(
+              output_zip,
+              mode="w",
+              compression=zipfile.ZIP_DEFLATED,
+              compresslevel=9,
+          ) as archive:
+              for path in sorted(output_root.rglob("*"), key=lambda item: item.as_posix().lower()):
+                  if not path.is_file():
+                      continue
+                  arcname = path.relative_to(output_root.parent).as_posix()
+                  info = zipfile.ZipInfo(arcname, date_time=FIXED_ZIP_TIME)
+                  info.compress_type = zipfile.ZIP_DEFLATED
+                  info.external_attr = (0o100644 & 0xFFFF) << 16
+                  archive.writestr(
+                      info,
+                      path.read_bytes(),
+                      compress_type=zipfile.ZIP_DEFLATED,
+                      compresslevel=9,
+                  )
+
+          with zipfile.ZipFile(output_zip) as archive:
+              failed = archive.testzip()
+              if failed is not None:
+                  raise SystemExit(f"Built ZIP is corrupt at {failed}")
+
+          package_sha = sha256_file(output_zip)
+          (work / "package-sha256.txt").write_text(package_sha + "\n", encoding="ascii")
+
+          notes = Path("release-notes/v0.2.3.md").read_text(encoding="utf-8")
+          notes = re.sub(
+              r"SHA-256: `?[0-9A-Fa-f]{64}`?",
+              f"SHA-256: `{package_sha}`",
+              notes,
+          )
+          (work / "release-body.md").write_text(notes, encoding="utf-8")
+
+          print(f"Built {output_zip}")
+          print(f"SHA-256: {package_sha}")
+          PY
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v0.2.3 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release v0.2.3 already exists."
+            exit 0
+          fi
+          cat work/package-sha256.txt
+          gh release create v0.2.3 \
+            'work/Wizardry8_Korean_Patch_1.28.6735_v0.2.3.zip' \
+            --repo "$GITHUB_REPOSITORY" \
+            --target main \
+            --title 'Wizardry 8 한국어 패치 v0.2.3' \
+            --notes-file work/release-body.md
