@@ -3,7 +3,7 @@ name: Publish v0.2.3
 on:
   push:
     branches:
-      - automation-release-v0.2.3
+      - main
 
 permissions:
   contents: write
