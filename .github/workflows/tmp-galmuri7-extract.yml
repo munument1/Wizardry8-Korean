@@ -1,0 +1,23 @@
+name: Temporary Galmuri7 Extract
+
+on:
+  push:
+    branches:
+      - tmp/galmuri7-font-extract
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download official Galmuri7
+        run: |
+          curl --fail --location --retry 3 \
+            https://raw.githubusercontent.com/quiple/galmuri/main/dist/Galmuri7.woff2 \
+            --output Galmuri7.woff2
+          test "$(wc -c < Galmuri7.woff2)" -gt 250000
+      - name: Upload temporary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: galmuri7-font-source
+          path: Galmuri7.woff2
+          retention-days: 1
