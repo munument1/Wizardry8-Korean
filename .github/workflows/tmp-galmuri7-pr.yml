@@ -1,0 +1,67 @@
+name: Temporary Galmuri7 PR Extract
+
+on:
+  pull_request:
+    branches:
+      - tmp/galmuri7-font-extract
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download official Galmuri7 BDF
+        run: |
+          curl --fail --location --retry 3 \
+            https://raw.githubusercontent.com/quiple/galmuri/main/dist/Galmuri7.bdf \
+            --output Galmuri7.bdf
+
+      - name: Extract Hangul bitmaps
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          records = {}
+          current = None
+          bitmap = False
+          for line in Path('Galmuri7.bdf').read_text(encoding='utf-8').splitlines():
+              if line.startswith('STARTCHAR '):
+                  current = {'cp': None, 'bbx': None, 'dwidth': None, 'rows': []}
+                  bitmap = False
+              elif current is not None and line.startswith('ENCODING '):
+                  current['cp'] = int(line.split()[1])
+              elif current is not None and line.startswith('DWIDTH '):
+                  current['dwidth'] = tuple(map(int, line.split()[1:3]))
+              elif current is not None and line.startswith('BBX '):
+                  current['bbx'] = tuple(map(int, line.split()[1:5]))
+              elif current is not None and line == 'BITMAP':
+                  bitmap = True
+              elif current is not None and line == 'ENDCHAR':
+                  cp = current['cp']
+                  if cp is not None and 0xAC00 <= cp <= 0xD7A3:
+                      if not current['bbx'] or not current['rows']:
+                          raise RuntimeError(f'incomplete glyph U+{cp:04X}')
+                      records[cp] = current
+                  current = None
+                  bitmap = False
+              elif current is not None and bitmap:
+                  current['rows'].append(line.strip().upper())
+
+          out = Path('Galmuri7_Hangul_glyphs.txt')
+          with out.open('w', encoding='ascii', newline='\n') as f:
+              f.write('# Galmuri7 Hangul glyphs; source quiple/galmuri\n')
+              f.write('# CODEPOINT|BBX(w,h,x,y)|DWIDTH(x,y)|BITMAP_ROWS_HEX\n')
+              for cp in sorted(records):
+                  r = records[cp]
+                  f.write(f"{cp:04X}|{','.join(map(str,r['bbx']))}|{','.join(map(str,r['dwidth']))}|{','.join(r['rows'])}\n")
+          print(f'wrote {len(records)} Hangul glyphs')
+          PY
+
+      - name: Upload compact glyph artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: galmuri7-hangul-glyphs
+          path: Galmuri7_Hangul_glyphs.txt
+          retention-days: 1
