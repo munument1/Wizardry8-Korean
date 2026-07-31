@@ -4,20 +4,82 @@ on:
   push:
     branches:
       - tmp/galmuri7-font-extract
+    paths-ignore:
+      - tmp/Galmuri7_required_glyphs.txt
+
+permissions:
+  contents: write
 
 jobs:
   extract:
     runs-on: ubuntu-latest
     steps:
-      - name: Download official Galmuri7
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp/galmuri7-font-extract
+
+      - name: Download official Galmuri7 BDF
         run: |
           curl --fail --location --retry 3 \
-            https://raw.githubusercontent.com/quiple/galmuri/main/dist/Galmuri7.woff2 \
-            --output Galmuri7.woff2
-          test "$(wc -c < Galmuri7.woff2)" -gt 250000
-      - name: Upload temporary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: galmuri7-font-source
-          path: Galmuri7.woff2
-          retention-days: 1
+            https://raw.githubusercontent.com/quiple/galmuri/main/dist/Galmuri7.bdf \
+            --output Galmuri7.bdf
+
+      - name: Extract required Korean bitmaps
+        env:
+          REQUIRED_CP_ZLIB_B64: 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
+        run: |
+          python3 - <<'PY'
+          import base64, os, re, struct, zlib
+          from pathlib import Path
+
+          raw = zlib.decompress(base64.b64decode(os.environ['REQUIRED_CP_ZLIB_B64']))
+          required = {struct.unpack_from('<H', raw, i)[0] for i in range(0, len(raw), 2)}
+          records = {}
+          current = None
+          bitmap = False
+
+          for line in Path('Galmuri7.bdf').read_text(encoding='utf-8').splitlines():
+              if line.startswith('STARTCHAR '):
+                  current = {'cp': None, 'bbx': None, 'dwidth': None, 'rows': []}
+                  bitmap = False
+              elif current is not None and line.startswith('ENCODING '):
+                  current['cp'] = int(line.split()[1])
+              elif current is not None and line.startswith('DWIDTH '):
+                  current['dwidth'] = tuple(map(int, line.split()[1:3]))
+              elif current is not None and line.startswith('BBX '):
+                  current['bbx'] = tuple(map(int, line.split()[1:5]))
+              elif current is not None and line == 'BITMAP':
+                  bitmap = True
+              elif current is not None and line == 'ENDCHAR':
+                  cp = current['cp']
+                  if cp in required:
+                      if not current['bbx'] or not current['rows']:
+                          raise RuntimeError(f'incomplete glyph U+{cp:04X}')
+                      records[cp] = current
+                  current = None
+                  bitmap = False
+              elif current is not None and bitmap:
+                  current['rows'].append(line.strip().upper())
+
+          missing = sorted(required - records.keys())
+          if missing:
+              raise RuntimeError(f'missing {len(missing)} glyphs, first U+{missing[0]:04X}')
+
+          out = Path('tmp/Galmuri7_required_glyphs.txt')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          with out.open('w', encoding='ascii', newline='\n') as f:
+              f.write('# Galmuri7 required Hangul glyphs; source quiple/galmuri 2.40.3\n')
+              f.write('# format: CODEPOINT|BBX(w,h,x,y)|DWIDTH(x,y)|BITMAP_ROWS_HEX\n')
+              for cp in sorted(records):
+                  r = records[cp]
+                  f.write(f"{cp:04X}|{','.join(map(str,r['bbx']))}|{','.join(map(str,r['dwidth']))}|{','.join(r['rows'])}\n")
+          print(f'wrote {len(records)} glyphs to {out}')
+          PY
+
+      - name: Commit compact glyph table
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tmp/Galmuri7_required_glyphs.txt
+          git commit -m 'chore: generate temporary Galmuri7 glyph table [skip ci]' || exit 0
+          git push origin HEAD:tmp/galmuri7-font-extract
