@@ -40,7 +40,7 @@ DontShowDialogLauncher=0
 - 아이템 이름 819개
 - 아이템 및 주문 설명
 - Fan Patch 1.28 build 6735 추가 옵션
-- Noto Sans KR Light 기반 한글 비트맵 글꼴과 한국어 문자 매핑
+- 갈무리9 기반 한글 비트맵 글꼴과 한국어 문자 매핑
 - 8×7 초소형 글꼴은 프리텐다드 사용
 
 ## 글꼴 고지
