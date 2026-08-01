@@ -6,7 +6,7 @@ Wizardry 8과 Fan Patch 1.28을 위한 비공식 한국어 패치입니다.
 
 - Wizardry 8
 - Fan Patch 1.28 build 6735
-- 한국어 패치 v0.2.3
+- 한국어 패치 v0.2.4
 
 Fan Patch build 6709 사용자는 기존 한국어 패치 v0.1.0을 사용하세요. 서로 다른
 Fan Patch 빌드용 파일을 섞어 설치하면 안 됩니다.
