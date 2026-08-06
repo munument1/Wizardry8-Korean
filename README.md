@@ -2,14 +2,15 @@
 
 Wizardry 8과 Fan Patch 1.28을 위한 비공식 한국어 패치입니다.
 
-## 최신 릴리스
+## 최신 시험 릴리스
 
 - Wizardry 8
 - 원본 1.24: `Wizardry8_KoreanPatch_1.24_TopicFix_v0.2.6.zip`
 - Fan Patch 1.28 build 6735: `Wizardry8_KoreanPatch_1.28_TopicFix_v0.2.6.zip`
-- 한국어 패치 v0.2.6 (대화 토픽 입력 보조판)
+- 한국어 패치 v0.2.6 사전 공개판 (대화 토픽 입력 보조)
 
 두 ZIP은 서로 다른 게임 버전용입니다. 파일을 섞어 설치하지 마세요.
+더블클릭 토픽 입력과 닫는 따옴표 위치는 인게임 검증 전인 시험 기능입니다.
 
 ## 설치
 
