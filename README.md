@@ -2,26 +2,28 @@
 
 Wizardry 8과 Fan Patch 1.28을 위한 비공식 한국어 패치입니다.
 
-## 최신 안정 대상
+## 최신 릴리스
 
 - Wizardry 8
-- Fan Patch 1.28 build 6735
-- 한국어 패치 v0.2.4
+- 원본 1.24: `Wizardry8_KoreanPatch_1.24_TopicFix_v0.2.6.zip`
+- Fan Patch 1.28 build 6735: `Wizardry8_KoreanPatch_1.28_TopicFix_v0.2.6.zip`
+- 한국어 패치 v0.2.6 (대화 토픽 입력 보조판)
 
-Fan Patch build 6709 사용자는 기존 한국어 패치 v0.1.0을 사용하세요. 서로 다른
-Fan Patch 빌드용 파일을 섞어 설치하면 안 됩니다.
+두 ZIP은 서로 다른 게임 버전용입니다. 파일을 섞어 설치하지 마세요.
 
 ## 설치
 
 1. 정품 Wizardry 8을 설치합니다.
-2. Fan Patch 1.28 build 6735를 설치합니다.
-3. [Releases](../../releases)에서 `Wizardry8_Korean_Patch_1.28.6735_v0.2.3.zip`을 받습니다.
-4. 압축 안의 `Patch Files` 폴더 내용물을 Wizardry 8 게임 폴더에 덮어씁니다.
-5. Fan Patch 런처의 언어는 **ENG**로 두고 `Wiz8_v128.exe`를 실행합니다.
+2. 사용 중인 게임 버전에 맞는 [v0.2.6 릴리스](../../releases)의 ZIP 하나를 받습니다.
+3. 압축 안의 내용을 Wizardry 8 게임 폴더에 덮어씁니다.
+4. Fan Patch 1.28 사용자는 런처 언어를 **ENG**로 두고 `Wiz8_v128.exe`를 실행합니다.
 
-`KOR` 외부 로캘은 사용하지 않습니다. v0.2.3의 수정된 `Wiz8_v128.exe`가
-NPC 스크립트의 한국어 문자열 변환 로캘과 버퍼를 직접 처리합니다. Fan Patch
-추가 옵션 문자열은 `Wiz8.dll` 내부에 직접 적용했습니다.
+대화의 영문 토픽은 더블클릭해 입력할 수 있습니다. 현재 저장에 이미 기록된
+`[소문]` 같은 한국어 토픽을 자동으로 기존 영문 토픽으로 변환하지는 않습니다.
+
+`KOR` 외부 로캘은 사용하지 않습니다. 수정된 `Wiz8_v128.exe`가 NPC 스크립트의
+한국어 문자열 변환 로캘과 버퍼를 직접 처리합니다. Fan Patch 추가 옵션 문자열은
+`Wiz8.dll` 내부에 직접 적용했습니다.
 
 권장 `wiz8.ini` 설정:
 
